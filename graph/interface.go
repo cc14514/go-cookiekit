@@ -26,3 +26,10 @@ type Search interface {
 type Cycle interface {
 	HasCycle() bool
 }
+
+
+// 判断一个图是否为二分图
+// 无向图G为二分图的充分必要条件是，G至少有两个顶点，且其所有回路的长度均为偶数
+type TowColor interface {
+	IsBipartite() bool
+}

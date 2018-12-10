@@ -2,8 +2,8 @@ package graph
 
 import (
 	"github.com/cc14514/go-cookiekit/collections/bag"
-	"github.com/cc14514/go-cookiekit/collections/stack"
 	"github.com/cc14514/go-cookiekit/collections/queue"
+	"github.com/cc14514/go-cookiekit/collections/stack"
 )
 
 // 深度优先 Depth First Search
@@ -113,7 +113,7 @@ func (self *CycleImpl) load(graph SimpleGraph, v, u int) {
 			self.load(graph, a, v)
 		} else if a != u {
 			// 顺着邻接表的一个顶点开始深度优先遍历
-			// 如果存在一个顶点被非上一个顶点标记过，则一定存在环
+			// 如果存在一个顶点被标记过，但并非上一个顶点，则一定存在环
 			self.isCycle = true
 		}
 	}
@@ -123,4 +123,42 @@ func (self *CycleImpl) HasCycle() bool {
 	return self.isCycle
 }
 
-// TODO 二分图 TowColor
+// 二分图 TowColor
+// 无向图G为二分图的充分必要条件是，G至少有两个顶点，且其所有回路的长度均为偶数
+type TowColorImpl struct {
+	marked      *bag.Bag // 与 s 连通的顶点集合
+	color       []bool
+	isBipartite bool
+}
+
+func NewTowColor(graph SimpleGraph) TowColor {
+	tc := new(TowColorImpl)
+	tc.isBipartite = true
+	tc.marked = bag.New()
+	tc.color = make([]bool, graph.V())
+	for v, _ := range graph.GetAdj() {
+		tc.load(graph, v)
+	}
+	return tc
+}
+
+//graph 是图对象
+//v 要展开的顶点
+func (self *TowColorImpl) load(graph SimpleGraph, v int) {
+	self.marked.Insert(v)
+	for _, a := range graph.Adj(v) {
+		if self.marked.Count(a) < 1 {
+			// 和 a 相邻的节点必须跟 a 是相反的颜色
+			self.color[a] = !self.color[v]
+			self.load(graph, a)
+		} else if self.color[a] == self.color[v] {
+			// 顺着邻接表的一个顶点开始深度优先遍历
+			// 如果存在一个顶点被标记过，但是跟我颜色相同，则断言一定不是二分图
+			self.isBipartite = false
+		}
+	}
+}
+
+func (self *TowColorImpl) IsBipartite() bool {
+	return self.isBipartite
+}

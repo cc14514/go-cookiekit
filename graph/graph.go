@@ -9,7 +9,7 @@ import (
 
 type Graph struct {
 	v, e int
-	adj  []*bag.Bag //邻接哈希表
+	adj  []*bag.Bag //邻接表
 }
 
 func (self *Graph) GetAdj() []*bag.Bag {
@@ -150,7 +150,7 @@ func NewGraphByAdjacencyList(data string) (g *Graph) {
 		if len(ss) < 2 {
 			continue
 		}
-		ee := strings.Split(ss[1], ",")
+		ee := strings.Split(ss[1], " ")
 		if len(ee) < 1 {
 			continue
 		}

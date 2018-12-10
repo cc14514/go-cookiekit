@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -13,12 +14,26 @@ var (
 3 4
 `
 	data2 = `
-0:1,5
-1:0,5,3,2
-2:1,3
-3:1,2,4,5
-4:3,5
-5:0,1,3,4
+0:1 5
+1:0 5 3 2
+2:1 3
+3:1 2 4 5
+4:3 5
+5:0 1 3 4
+`
+	data3 = `
+0:1
+1:2 3
+2:1 4
+3:1
+4:2
+`
+	data4 = `
+0:1 2
+1:2 3
+2:1 4
+3:1
+4:2
 `
 )
 
@@ -62,4 +77,11 @@ func TestSearch(t *testing.T) {
 func TestCycle(t *testing.T) {
 	c := NewCycle(g)
 	t.Log(c.HasCycle())
+}
+
+func TestTowColor(t *testing.T) {
+	yes := NewGraphByAdjacencyList(data3)
+	no := NewGraphByAdjacencyList(data4)
+	assert.Equal(t,NewTowColor(yes).IsBipartite(),true)
+	assert.Equal(t,NewTowColor(no).IsBipartite(),false)
 }
