@@ -4,7 +4,12 @@ import (
 	"github.com/cc14514/go-cookiekit/collections/bag"
 	"github.com/cc14514/go-cookiekit/collections/queue"
 	"github.com/cc14514/go-cookiekit/collections/stack"
+	"fmt"
 )
+
+// =======================
+// 无向图 API
+// =======================
 
 // 深度优先 Depth First Search
 type DFSearch struct {
@@ -31,18 +36,18 @@ func (self *DFSearch) PathTo(v int) []int {
 }
 
 func (self *DFSearch) GenSearch(graph SimpleGraph, s int) Search {
-	self.count, self.s, self.marked, self.edgeTo = 0, s, bag.New(), make([]int, graph.E())
-	self.load(graph, s)
+	self.count, self.s, self.marked, self.edgeTo = 0, s, bag.New(), make([]int, graph.V())
+	self.dfs(graph, s)
 	return self
 }
 
-func (self *DFSearch) load(graph SimpleGraph, s int) {
-	self.marked.Insert(s)
+func (self *DFSearch) dfs(graph SimpleGraph, v int) {
+	self.marked.Insert(v)
 	self.count ++
-	for _, a := range graph.Adj(s) {
-		if self.marked.Count(a) < 1 {
-			self.edgeTo[a] = s
-			self.load(graph, a)
+	for _, w := range graph.Adj(v) {
+		if self.marked.Count(w) < 1 {
+			self.edgeTo[w] = v
+			self.dfs(graph, w)
 		}
 	}
 }
@@ -61,12 +66,12 @@ type BFSearch struct {
 }
 
 func (self *BFSearch) GenSearch(graph SimpleGraph, s int) Search {
-	self.count, self.s, self.marked, self.edgeTo = 0, s, bag.New(), make([]int, graph.E())
-	self.load(graph, s)
+	self.count, self.s, self.marked, self.edgeTo = 0, s, bag.New(), make([]int, graph.V())
+	self.bfs(graph, s)
 	return self
 }
 
-func (self *BFSearch) load(graph SimpleGraph, s int) {
+func (self *BFSearch) bfs(graph SimpleGraph, s int) {
 	q := queue.New()
 	self.marked.Insert(s)
 	self.count ++
@@ -97,7 +102,7 @@ func NewCycle(graph SimpleGraph) Cycle {
 	// 因为有 marked 的存在会过滤掉重复的子图
 	for k, _ := range graph.GetAdj() {
 		if c.marked.Count(k) < 1 {
-			c.load(graph, k, k)
+			c.dfs(graph, k, k)
 		}
 	}
 	return c
@@ -106,11 +111,11 @@ func NewCycle(graph SimpleGraph) Cycle {
 //graph 是图对象
 //v 要展开的顶点
 //u 上次调用此方法的 v
-func (self *CycleImpl) load(graph SimpleGraph, v, u int) {
+func (self *CycleImpl) dfs(graph SimpleGraph, v, u int) {
 	self.marked.Insert(v)
 	for _, a := range graph.Adj(v) {
 		if self.marked.Count(a) < 1 {
-			self.load(graph, a, v)
+			self.dfs(graph, a, v)
 		} else if a != u {
 			// 顺着邻接表的一个顶点开始深度优先遍历
 			// 如果存在一个顶点被标记过，但并非上一个顶点，则一定存在环
@@ -137,20 +142,20 @@ func NewTowColor(graph SimpleGraph) TowColor {
 	tc.marked = bag.New()
 	tc.color = make([]bool, graph.V())
 	for v, _ := range graph.GetAdj() {
-		tc.load(graph, v)
+		tc.dfs(graph, v)
 	}
 	return tc
 }
 
 //graph 是图对象
 //v 要展开的顶点
-func (self *TowColorImpl) load(graph SimpleGraph, v int) {
+func (self *TowColorImpl) dfs(graph SimpleGraph, v int) {
 	self.marked.Insert(v)
 	for _, a := range graph.Adj(v) {
 		if self.marked.Count(a) < 1 {
 			// 和 a 相邻的节点必须跟 a 是相反的颜色
 			self.color[a] = !self.color[v]
-			self.load(graph, a)
+			self.dfs(graph, a)
 		} else if self.color[a] == self.color[v] {
 			// 顺着邻接表的一个顶点开始深度优先遍历
 			// 如果存在一个顶点被标记过，但是跟我颜色相同，则断言一定不是二分图
@@ -161,4 +166,71 @@ func (self *TowColorImpl) load(graph SimpleGraph, v int) {
 
 func (self *TowColorImpl) IsBipartite() bool {
 	return self.isBipartite
+}
+
+// =======================
+// 有向图 API
+// =======================
+
+// 深度优先 Depth First Search
+type DirectedSearchDFS struct {
+	count int
+	// 单点可达性、多点可达性
+	ss     []int    // 起点 ss
+	marked *bag.Bag // 与 ss 连通的顶点集合
+	edgeTo []int    // 边的映射,用来寻找路径
+}
+
+func (self *DirectedSearchDFS) Marked(v int) bool {
+	b := self.marked.Count(v) > 0
+	return b
+}
+
+func (self *DirectedSearchDFS) Count() int {
+	return self.count
+}
+
+func (self *DirectedSearchDFS) PathTo(v int) map[int][]int {
+	if !self.Marked(v) {
+		return nil
+	}
+	result := make(map[int][]int)
+	for _, s := range self.ss {
+		sk := stack.New()
+		for x := v; x != s; x = self.edgeTo[x] {
+			sk.Push(x)
+		}
+		sk.Push(s)
+		r := make([]int, 0)
+		for !sk.Empty() {
+			r = append(r, sk.Pop().(int))
+		}
+		result[s] = r
+	}
+	return result
+}
+
+func (self *DirectedSearchDFS) GenSearch(digraph SimpleDigraph, ss ... int) DirectedSearch {
+	self.count, self.ss, self.marked, self.edgeTo = 0, ss, bag.New(), make([]int, digraph.V())
+	for _, s := range ss {
+		fmt.Println("a ->", s)
+		if self.marked.Count(s) < 1 {
+			fmt.Println("a <-", s)
+			self.dfs(digraph, s)
+		}
+	}
+	return self
+}
+
+func (self *DirectedSearchDFS) dfs(digraph SimpleDigraph, s int) {
+	self.marked.Insert(s)
+	self.count ++
+	for _, v := range digraph.Adj(s) {
+		if self.marked.Count(v) < 1 {
+			//if !self.Marked(v) {
+			fmt.Println("b", v, s)
+			self.edgeTo[v] = s
+			self.dfs(digraph, v)
+		}
+	}
 }

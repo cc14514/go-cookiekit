@@ -7,6 +7,13 @@ import (
 
 var (
 	g     SimpleGraph
+	data0 = `
+0:1 3 4
+1:0 2
+2:1
+3:0
+4:0
+`
 	data1 = `
 0 1
 1 2
@@ -53,7 +60,13 @@ func TestNewGraphByAdjacencyList(t *testing.T) {
 	t.Log(g.Adj(1))
 }
 
-func TestSearch(t *testing.T) {
+func TestSearch1(t *testing.T) {
+	t.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DFSearch >>>>")
+	g = NewGraphByAdjacencyList(data0)
+	search := new(DFSearch).GenSearch(g, 0)
+	t.Log("path_to [0-2]:", search.PathTo(2))
+}
+func TestSearch2(t *testing.T) {
 	t.Log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DFSearch >>>>")
 	search := new(DFSearch).GenSearch(g, 0)
 	t.Log("graph", g)
@@ -82,6 +95,31 @@ func TestCycle(t *testing.T) {
 func TestTowColor(t *testing.T) {
 	yes := NewGraphByAdjacencyList(data3)
 	no := NewGraphByAdjacencyList(data4)
-	assert.Equal(t,NewTowColor(yes).IsBipartite(),true)
-	assert.Equal(t,NewTowColor(no).IsBipartite(),false)
+	assert.Equal(t, NewTowColor(yes).IsBipartite(), true)
+	assert.Equal(t, NewTowColor(no).IsBipartite(), false)
+}
+
+func TestNewDigraph(t *testing.T) {
+	var dig SimpleDigraph = NewDigraph(10)
+	dig.AddEdge(0, 3)
+	dig.AddEdge(1, 5)
+	dig.AddEdge(0, 9)
+	t.Log(dig)
+	t.Log("-----------------")
+	t.Log(dig.Reverse())
+}
+
+func TestDirectedSearchDFS_PathTo(t *testing.T) {
+	var dig SimpleDigraph = NewDigraph(5)
+	dig.AddEdge(0, 1)
+	dig.AddEdge(0, 2)
+	dig.AddEdge(0, 3)
+	dig.AddEdge(1, 2)
+	dig.AddEdge(2, 0)
+	dig.AddEdge(3, 4)
+	t.Log(dig)
+	s := new(DirectedSearchDFS).GenSearch(dig, 0,1 )
+	r := s.PathTo(4)
+	t.Log(r)
+
 }

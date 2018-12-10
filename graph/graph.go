@@ -7,6 +7,7 @@ import (
 	"github.com/cc14514/go-cookiekit/collections/bag"
 )
 
+// 无向图
 type Graph struct {
 	v, e int
 	adj  []*bag.Bag //邻接表
@@ -25,6 +26,9 @@ func (self *Graph) E() int {
 }
 
 func (self *Graph) AddEdge(v, w int) {
+	if v > self.V() || w > self.V() {
+		panic("error number")
+	}
 	if self.adj[v] == nil {
 		self.adj[v] = bag.New()
 	}
