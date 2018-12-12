@@ -19,6 +19,8 @@ var (
 1 2
 2 0
 3 4
+4 5
+5 3
 `
 	data2 = `
 0:1 5
@@ -90,6 +92,24 @@ func TestSearch2(t *testing.T) {
 func TestCycle(t *testing.T) {
 	c := NewCycle(g)
 	t.Log(c.HasCycle())
+	t.Log(c.Cycle())
+}
+
+func TestDirectedCycle(t *testing.T) {
+	dig := NewDigraph(5)
+	dig.AddEdge(0, 1)
+	dig.AddEdge(1, 2)
+	dig.AddEdge(3, 4)
+	dig.AddEdge(4, 2)
+
+	c1 := NewDirectedCycle(dig)
+	assert.Equal(t, c1.HasCycle(), false)
+	t.Log(c1.Cycle())
+
+	dig.AddEdge(2, 0)
+	c2 := NewDirectedCycle(dig)
+	assert.Equal(t, c2.HasCycle(), true)
+	t.Log(c2.Cycle())
 }
 
 func TestTowColor(t *testing.T) {
@@ -117,9 +137,54 @@ func TestDirectedSearchDFS_PathTo(t *testing.T) {
 	dig.AddEdge(1, 2)
 	dig.AddEdge(2, 0)
 	dig.AddEdge(3, 4)
-	t.Log(dig)
-	s := new(DirectedSearchDFS).GenSearch(dig, 0,1 )
-	r := s.PathTo(4)
+	s := new(DirectedSearchDFS).GenSearch(dig, 0)
+	r := s.PathTo(2)
 	t.Log(r)
+}
 
+func TestDirectedSearchBFS_PathTo(t *testing.T) {
+	var dig SimpleDigraph = NewDigraph(5)
+	dig.AddEdge(0, 1)
+	dig.AddEdge(0, 2)
+	dig.AddEdge(0, 3)
+	dig.AddEdge(1, 2)
+	dig.AddEdge(2, 0)
+	dig.AddEdge(3, 4)
+	s := new(DirectedSearchBFS).GenSearch(dig, 0)
+	r := s.PathTo(2)
+	t.Log(r)
+}
+
+func TestNewDFDigOrder(t *testing.T) {
+	var dig SimpleDigraph = NewDigraph(13)
+	dig.AddEdge(0, 1)
+	dig.AddEdge(0, 5)
+	dig.AddEdge(0, 6)
+
+	dig.AddEdge(2, 0)
+	dig.AddEdge(2, 3)
+
+	dig.AddEdge(3, 5)
+
+	dig.AddEdge(5, 4)
+
+	dig.AddEdge(6, 4)
+	dig.AddEdge(6, 9)
+
+	dig.AddEdge(7, 6)
+
+	dig.AddEdge(8, 7)
+
+	dig.AddEdge(9, 10)
+	dig.AddEdge(9, 11)
+	dig.AddEdge(9, 12)
+
+	dig.AddEdge(11, 12)
+
+	t.Log(dig)
+
+	o := NewDFDigOrder(dig)
+	t.Log(o.Per())
+	t.Log(o.Post())
+	t.Log(o.ReversePost())
 }
