@@ -4,6 +4,7 @@ import (
 	"github.com/cc14514/go-cookiekit/collections/bag"
 	"github.com/cc14514/go-cookiekit/collections/queue"
 	"github.com/cc14514/go-cookiekit/collections/stack"
+	"fmt"
 )
 
 // =======================
@@ -86,6 +87,48 @@ func (self *BFSearch) bfs(graph SimpleGraph, s int) {
 			}
 		}
 	}
+}
+
+type CCImpl struct {
+	marked *bag.Bag
+	count  int
+	id     []int
+}
+
+func NewCC(graph SimpleGraph) CC {
+	cc := new(CCImpl)
+	cc.marked = bag.New()
+	cc.count = 0
+	cc.id = make([]int, graph.V())
+	for v, _ := range graph.GetAdj() {
+		if cc.marked.Count(v) < 1 {
+			cc.dfs(graph, v)
+			cc.count ++
+		}
+	}
+	return cc
+}
+
+func (self *CCImpl) dfs(graph SimpleGraph, v int) {
+	self.marked.Insert(v)
+	self.id[v] = self.count
+	for _, w := range graph.Adj(v) {
+		if self.marked.Count(w) < 1 {
+			self.dfs(graph, w)
+		}
+	}
+}
+
+func (self *CCImpl) Connected(v, w int) bool {
+	return self.id[v] == self.id[w]
+}
+
+func (self *CCImpl) Count() int {
+	return self.count
+}
+
+func (self *CCImpl) ID(v int) int {
+	return self.id[v]
 }
 
 // 无向图 Cycle : 深度优先, 判断是否包含环
@@ -328,15 +371,15 @@ func (self *DirectedCycleImpl) Cycle() []int {
 }
 
 // 深度优先 有向图 顶点排序
-type DFDigOrder struct {
+type DFOrder struct {
 	per         []int
 	post        []int
 	reversePost []int
 	marked      *bag.Bag
 }
 
-func NewDFDigOrder(dig SimpleDigraph) DigOrder {
-	o := new(DFDigOrder)
+func NewDFOrder(dig SimpleDigraph) DigOrder {
+	o := new(DFOrder)
 	o.per = make([]int, 0)
 	o.post = make([]int, 0)
 	o.reversePost = make([]int, 0)
@@ -349,7 +392,7 @@ func NewDFDigOrder(dig SimpleDigraph) DigOrder {
 	return o
 }
 
-func (self *DFDigOrder) dfs(dig SimpleDigraph, v int) {
+func (self *DFOrder) dfs(dig SimpleDigraph, v int) {
 	self.marked.Insert(v)
 	self.per = append(self.per, v)
 	defer func() {
@@ -364,14 +407,41 @@ func (self *DFDigOrder) dfs(dig SimpleDigraph, v int) {
 	}
 }
 
-func (self *DFDigOrder) Per() []int {
+func (self *DFOrder) Per() []int {
 	return self.per
 }
 
-func (self *DFDigOrder) Post() []int {
+func (self *DFOrder) Post() []int {
 	return self.post
 }
 
-func (self *DFDigOrder) ReversePost() []int {
+func (self *DFOrder) ReversePost() []int {
 	return self.reversePost
+}
+
+// DAG 拓扑排序
+type DigTopological struct {
+	order []int
+	isDAG bool
+}
+
+func NewDigTopological(dig SimpleDigraph) Topological {
+	digt := new(DigTopological)
+	cycle := NewDirectedCycle(dig)
+	digt.isDAG = !cycle.HasCycle()
+	if digt.isDAG {
+		o := NewDFOrder(dig)
+		digt.order = o.ReversePost()
+		fmt.Println("p", o.Post())
+		fmt.Println("r", o.ReversePost())
+	}
+	return digt
+}
+
+func (self *DigTopological) IsDAG() bool {
+	return self.isDAG
+}
+
+func (self *DigTopological) Order() []int {
+	return self.order
 }

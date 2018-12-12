@@ -4,7 +4,7 @@ import (
 	"github.com/cc14514/go-cookiekit/collections/bag"
 )
 
-// 简单图 接口
+// 无向图 接口
 type SimpleGraph interface {
 	V() int             //顶点数
 	E() int             //边数
@@ -14,25 +14,35 @@ type SimpleGraph interface {
 	String() string     //对象的字符串表示
 }
 
+// 有向图 接口
 type SimpleDigraph interface {
 	SimpleGraph
 	Reverse() SimpleDigraph
 }
 
-// 简单的 Search API
-type Search interface {
-	GenSearch(graph SimpleGraph, s int) Search
+type search interface {
 	Marked(v int) bool  // v 和 s 是连通的吗
 	Count() int         // 与 s 连通的顶点总数
 	PathTo(v int) []int //返回 s 到 v 的路径
 }
 
+// 简单的 Search API
+type Search interface {
+	search
+	GenSearch(graph SimpleGraph, s int) Search
+}
+
 // 有向图的 Search API
 type DirectedSearch interface {
+	search
 	GenSearch(graph SimpleDigraph, s int) DirectedSearch
-	Marked(v int) bool  // v 和 s 是连通的吗
-	Count() int         // 与 s 连通的顶点总数
-	PathTo(v int) []int //返回 s 到 v 的路径
+}
+
+// 无向图连通分量
+type CC interface {
+	Connected(v, w int) bool // v 和 w 是连通的吗
+	Count() int // 连通分量数
+	ID(v int) int // v 所在的连通分量
 }
 
 // 判断一个图是否存在环

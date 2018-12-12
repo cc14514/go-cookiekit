@@ -7,6 +7,8 @@ import (
 
 var (
 	g     SimpleGraph
+	dig   SimpleDigraph
+	dag   SimpleDigraph
 	data0 = `
 0:1 3 4
 1:0 2
@@ -48,6 +50,32 @@ var (
 
 func init() {
 	g = NewGraphByData(data1)
+
+	dag = NewDigraph(13)
+	dag.AddEdge(0, 1)
+	dag.AddEdge(0, 5)
+	dag.AddEdge(0, 6)
+	dag.AddEdge(2, 0)
+	dag.AddEdge(2, 3)
+	dag.AddEdge(3, 5)
+	dag.AddEdge(5, 4)
+	dag.AddEdge(6, 4)
+	dag.AddEdge(6, 9)
+	dag.AddEdge(7, 6)
+	dag.AddEdge(8, 7)
+	dag.AddEdge(9, 10)
+	dag.AddEdge(9, 11)
+	dag.AddEdge(9, 12)
+	dag.AddEdge(11, 12)
+
+	dig = NewDigraph(5)
+	dig.AddEdge(0, 1)
+	dig.AddEdge(0, 2)
+	dig.AddEdge(0, 3)
+	dig.AddEdge(1, 2)
+	dig.AddEdge(2, 0)
+	dig.AddEdge(3, 4)
+
 }
 
 func TestNewGraphByData(t *testing.T) {
@@ -89,6 +117,22 @@ func TestSearch2(t *testing.T) {
 	t.Log("path_to [0-2]:", search.PathTo(2))
 	t.Log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< BFSearch <<<<")
 }
+
+func TestCCImpl(t *testing.T) {
+	g = NewGraph(7)
+	g.AddEdge(0, 1)
+	g.AddEdge(1, 2)
+	g.AddEdge(3, 4)
+	g.AddEdge(5, 6)
+	cc := NewCC(g)
+	t.Log(cc.Count())
+	t.Log(cc.ID(0), cc.ID(1), cc.ID(2))
+	t.Log(cc.ID(3), cc.ID(4))
+	t.Log(cc.ID(5), cc.ID(6))
+	t.Log(cc.Connected(3,6))
+	t.Log(cc.Connected(1,2))
+}
+
 func TestCycle(t *testing.T) {
 	c := NewCycle(g)
 	t.Log(c.HasCycle())
@@ -96,7 +140,7 @@ func TestCycle(t *testing.T) {
 }
 
 func TestDirectedCycle(t *testing.T) {
-	dig := NewDigraph(5)
+	dig = NewDigraph(5)
 	dig.AddEdge(0, 1)
 	dig.AddEdge(1, 2)
 	dig.AddEdge(3, 4)
@@ -120,7 +164,7 @@ func TestTowColor(t *testing.T) {
 }
 
 func TestNewDigraph(t *testing.T) {
-	var dig SimpleDigraph = NewDigraph(10)
+	dig = NewDigraph(10)
 	dig.AddEdge(0, 3)
 	dig.AddEdge(1, 5)
 	dig.AddEdge(0, 9)
@@ -130,61 +174,29 @@ func TestNewDigraph(t *testing.T) {
 }
 
 func TestDirectedSearchDFS_PathTo(t *testing.T) {
-	var dig SimpleDigraph = NewDigraph(5)
-	dig.AddEdge(0, 1)
-	dig.AddEdge(0, 2)
-	dig.AddEdge(0, 3)
-	dig.AddEdge(1, 2)
-	dig.AddEdge(2, 0)
-	dig.AddEdge(3, 4)
+
 	s := new(DirectedSearchDFS).GenSearch(dig, 0)
 	r := s.PathTo(2)
 	t.Log(r)
 }
 
 func TestDirectedSearchBFS_PathTo(t *testing.T) {
-	var dig SimpleDigraph = NewDigraph(5)
-	dig.AddEdge(0, 1)
-	dig.AddEdge(0, 2)
-	dig.AddEdge(0, 3)
-	dig.AddEdge(1, 2)
-	dig.AddEdge(2, 0)
-	dig.AddEdge(3, 4)
 	s := new(DirectedSearchBFS).GenSearch(dig, 0)
 	r := s.PathTo(2)
 	t.Log(r)
 }
 
 func TestNewDFDigOrder(t *testing.T) {
-	var dig SimpleDigraph = NewDigraph(13)
-	dig.AddEdge(0, 1)
-	dig.AddEdge(0, 5)
-	dig.AddEdge(0, 6)
-
-	dig.AddEdge(2, 0)
-	dig.AddEdge(2, 3)
-
-	dig.AddEdge(3, 5)
-
-	dig.AddEdge(5, 4)
-
-	dig.AddEdge(6, 4)
-	dig.AddEdge(6, 9)
-
-	dig.AddEdge(7, 6)
-
-	dig.AddEdge(8, 7)
-
-	dig.AddEdge(9, 10)
-	dig.AddEdge(9, 11)
-	dig.AddEdge(9, 12)
-
-	dig.AddEdge(11, 12)
-
-	t.Log(dig)
-
-	o := NewDFDigOrder(dig)
+	t.Log(dag)
+	o := NewDFOrder(dag)
 	t.Log(o.Per())
 	t.Log(o.Post())
 	t.Log(o.ReversePost())
+}
+
+func TestNewDigTopological(t *testing.T) {
+	t.Log(dag)
+	tl := NewDigTopological(dag)
+	t.Log(tl.IsDAG())
+	t.Log(tl.Order())
 }
