@@ -1,10 +1,10 @@
 package graph
 
 import (
-	"strings"
-	"strconv"
 	"bytes"
 	"github.com/cc14514/go-cookiekit/collections/bag"
+	"strconv"
+	"strings"
 )
 
 // 无向图
@@ -40,7 +40,7 @@ func (self *Graph) AddEdge(v, w int) {
 			}
 			self.adj[w].Insert(v)
 		}
-		self.e ++
+		self.e++
 	}
 }
 

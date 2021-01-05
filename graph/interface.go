@@ -12,6 +12,7 @@ type SimpleGraph interface {
 	GetAdj() []*bag.Bag //获取邻接表
 	Adj(v int) []int    //和 v 相邻的顶点
 	String() string     //对象的字符串表示
+	// AddVertex() int
 }
 
 // 有向图 接口
@@ -41,8 +42,8 @@ type DirectedSearch interface {
 // 无向图连通分量
 type CC interface {
 	Connected(v, w int) bool // v 和 w 是连通的吗
-	Count() int // 连通分量数
-	ID(v int) int // v 所在的连通分量
+	Count() int              // 连通分量数
+	ID(v int) int            // v 所在的连通分量
 }
 
 // 判断一个图是否存在环
